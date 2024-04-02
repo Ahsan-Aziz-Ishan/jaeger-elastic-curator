@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rml-es-curator
+spec:
+  schedule: "0 1 * * *"
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 60  
+      template:
+        spec:
+          containers:
+            - args:
+                - /.curator/actionfile.yml
+              env:
+                - name: ES_HOST
+                  value: elasticsearch-master
+                - name: ES_PORT
+                  value: "9200"
+                - name: ES_USERNAME
+                  value: elastic
+                - name: ES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: password
+                      name: jaeger-tracing-elasticsearch
+              image: rml-es-curator:0.1
+              name: curator
+          restartPolicy: OnFailure
